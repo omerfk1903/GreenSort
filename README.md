@@ -13,7 +13,11 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
 
 # Çalışma diyagramı :  
 
-<img src="GreenSort/img/Diyagram.jpg" alt="Proje Görseli" width="500" height="200"/>
+  - "Kontrol sistemi ile yapay zeka arasındaki soket bağlantısı üzerinden komutlar iletilmektedir. Kontrol sistemi bir komut gönderdiğinde, yapay zeka aldığı görüntüde geri dönüştürülebilir bir atık tespit ederse, atığın türüne uygun kutunun servo motorları açılır. Geri dönüşüm atığı, servo motor yardımıyla ilgili kutuya yönlendirilirken bu süreç boyunca motorlar çalışır. İşlem tamamlandığında motorlar durur, servo kapanır ve geri dönüşüm atığı kutuya bırakılır. Bir sonraki işlem, kontrol sisteminden yeni bir komut alınıncaya kadar başlatılmaz."
+
+<img src="GreenSort/img/Diyagram.jpg" alt="Proje Görseli" width="1000" height="350"/>
+
+
 
 # Kullanılan malzemeler  : 
     
