@@ -13,6 +13,8 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
 
 # Çalışma diyagramı :  
 
+<img src="GreenSort/img/colob.jpg" alt="Proje Görseli" width="500" height="200"/>
+
 # Kullanılan malzemeler  : 
     
     1-) Arduino 
