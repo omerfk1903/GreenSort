@@ -11,6 +11,8 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
 - python programla dili Görüntü işleme ,yapay zeka ve menü oluşturmada kullanılmıştır.
 - C/C++ programlama dili ise mikrodenetleyicinin servo , motor ve motorların çalışma süresi gibi işlemleri yapmak için kullanılmıştır.
 
+# Çalışma diyagramı :  
+
 # Kullanılan malzemeler  : 
     
     1-) Arduino 
