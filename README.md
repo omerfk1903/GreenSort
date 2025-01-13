@@ -1,4 +1,7 @@
 # GreenSort
+
+NOT : GreenSort projesi geliştirme aşamasında olması sebebiyle bazı fonksiyonlar çalışmıyor durumdadır ama temel yapması gereken göre yapıyordur.
+
 GreenSort cihazı atık ayırma projesidir.Projenin temel amacı, geri dönüştürülebilir atıkların ayrımının yapılabilmesidir. Geri dönüştürülebilir ise atıkların ana maddesine göre bölgelere ayrılıyor.
 
 <img src="GreenSort/img/GreenSort.jpg" alt="Proje Görseli" width="500" height="200"/>
@@ -34,6 +37,7 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
     6-) kamera(kişisel telefonumu kullandım) 
 
     7-) AC-DC Dönüştürücü 220v-12v
+
 
 
 
