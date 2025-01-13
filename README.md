@@ -7,6 +7,8 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
 
 <img src="GreenSort/img/colob.jpg" alt="Proje Görseli" width="500" height="200"/> <img src="GreenSort/img/roboflow.jpg" alt="Proje Görseli" width="500" height="200"/>
 
+<img src="GreenSort/img/Camo.jpg" alt="Proje Görseli" width="50" height="50"/> - Telefonun kamera görüntüsü CAMO uyuglaması kullanılarak aktarılıyor.
+
 - Projenin yazılım kısmında python ve C/C++ programlama dilleri kullanılmıştır.
 - python programla dili Görüntü işleme ,yapay zeka ve menü oluşturmada kullanılmıştır.
 - C/C++ programlama dili ise mikrodenetleyicinin servo , motor ve motorların çalışma süresi gibi işlemleri yapmak için kullanılmıştır.
@@ -14,8 +16,6 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
 # Çalışma diyagramı :  
 
   - Kontrol sistemi ile yapay zeka arasındaki soket bağlantısı üzerinden komutlar iletilmektedir. Kontrol sistemi bir komut gönderdiğinde, yapay zeka aldığı görüntüde geri dönüştürülebilir bir atık tespit ederse, atığın türüne uygun kutunun servo motorları açılır. Geri dönüşüm atığı, servo motor yardımıyla ilgili kutuya yönlendirilirken bu süreç boyunca motorlar çalışır. İşlem tamamlandığında motorlar durur, servo kapanır ve geri dönüşüm atığı kutuya bırakılır. Bir sonraki işlem, kontrol sisteminden yeni bir komut alınıncaya kadar başlatılmaz.
-
-  - Telefon görüntüsünü CAMO uygulaması ile bilgisayara aktarması ile görüntü işlemesi yapılıyor .
 
 <img src="GreenSort/img/Diyagram.jpg" alt="Proje Görseli" width="1000" height="350"/>
 
