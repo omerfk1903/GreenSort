@@ -10,7 +10,7 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
 
 <img src="GreenSort/img/colob.jpg" alt="Proje Görseli" width="500" height="200"/> <img src="GreenSort/img/roboflow.jpg" alt="Proje Görseli" width="500" height="200"/>
 
-<img src="GreenSort/img/Camo.jpg" alt="Proje Görseli" width="50" height="50"/> - Telefonun kamera görüntüsü CAMO uyuglaması kullanılarak aktarılıyor.
+<img src="GreenSort/img/Camo.jpg" alt="Proje Görseli" width="50" height="50"/> - Telefonun kamera görüntüsü CAMO uygulaması kullanılarak aktarılıyor.
 
 - Projenin yazılım kısmında python ve C/C++ programlama dilleri kullanılmıştır.
 - python programla dili Görüntü işleme ,yapay zeka ,Socketler arası iletişim ve menü oluşturmada kullanılmıştır.
