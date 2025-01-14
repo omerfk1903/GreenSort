@@ -6,7 +6,7 @@ GreenSort cihazı atık ayırma projesidir.Projenin temel amacı, geri dönüşt
 
 <img src="GreenSort/img/GreenSort.jpg" alt="Proje Görseli" width="500" height="200"/>
 
-Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. Yapay zeka modeli, Google Colab altyapısı üzerinde, Roboflow platformundaki hazır görüntüler ve kendimizizn çektiği fotoğraflar ile eğitilmiştir.
+Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. Yapay zeka modeli, Google Colab altyapısı üzerinde, Roboflow platformundaki hazır görüntüler ve kendimizin çektiği fotoğraflar ile eğitilmiştir.
 
 <img src="GreenSort/img/colob.jpg" alt="Proje Görseli" width="500" height="200"/> <img src="GreenSort/img/roboflow.jpg" alt="Proje Görseli" width="500" height="200"/>
 
@@ -32,13 +32,15 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
     
     4-) 12v motor 
     
-    5-) bant 
+    5-) Bant 
     
     6-) kamera(kişisel telefonumu kullandım) 
 
     7-) AC-DC Dönüştürücü 220v-12v
 
     8-) Röle 
+
+    9-) Stop butonu
 
 
 
