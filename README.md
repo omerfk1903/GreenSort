@@ -1,19 +1,19 @@
 # GreenSort
 
-NOT : GreenSort projesi geliştirme aşamasında olması sebebiyle bazı fonksiyonlar çalışmıyor durumdadır ama temel yapması gereken göre yapıyordur.
+NOT : GreenSort projesi geliştirme aşamasında olması sebebiyle bazı fonksiyonlar çalışmıyor durumdadır ama temel yapması gereken işlemleri yapıyor.
 
 GreenSort cihazı atık ayırma projesidir.Projenin temel amacı, geri dönüştürülebilir atıkların ayrımının yapılabilmesidir. Geri dönüştürülebilir ise atıkların ana maddesine göre bölgelere ayrılıyor.
 
 <img src="GreenSort/img/GreenSort.jpg" alt="Proje Görseli" width="500" height="200"/>
 
-Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. Yapay zeka modeli, Google Colab altyapısı üzerinde, Roboflow platformundaki hazır görüntüler ve kendi derlenen veri setimiz kullanılarak eğitilmiştir.
+Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. Yapay zeka modeli, Google Colab altyapısı üzerinde, Roboflow platformundaki hazır görüntüler ve kendimizizn çektiği fotoğraflar ile eğitilmiştir.
 
 <img src="GreenSort/img/colob.jpg" alt="Proje Görseli" width="500" height="200"/> <img src="GreenSort/img/roboflow.jpg" alt="Proje Görseli" width="500" height="200"/>
 
 <img src="GreenSort/img/Camo.jpg" alt="Proje Görseli" width="50" height="50"/> - Telefonun kamera görüntüsü CAMO uyuglaması kullanılarak aktarılıyor.
 
 - Projenin yazılım kısmında python ve C/C++ programlama dilleri kullanılmıştır.
-- python programla dili Görüntü işleme ,yapay zeka ve menü oluşturmada kullanılmıştır.
+- python programla dili Görüntü işleme ,yapay zeka ,Socketler arası iletişim ve menü oluşturmada kullanılmıştır.
 - C/C++ programlama dili ise mikrodenetleyicinin servo , motor ve motorların çalışma süresi gibi işlemleri yapmak için kullanılmıştır.
 
 # Çalışma diyagramı :  
@@ -37,6 +37,8 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
     6-) kamera(kişisel telefonumu kullandım) 
 
     7-) AC-DC Dönüştürücü 220v-12v
+
+    8-) Röle 
 
 
 
