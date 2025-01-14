@@ -16,6 +16,12 @@ Projede yapay zeka uygulamaları için YOLOv8 kütüphanesi kullanılmıştır. 
 - python programla dili Görüntü işleme ,yapay zeka ,Socketler arası iletişim ve menü oluşturmada kullanılmıştır.
 - C/C++ programlama dili ise mikrodenetleyicinin servo , motor ve motorların çalışma süresi gibi işlemleri yapmak için kullanılmıştır.
 
+# Arduino bağlantı şeması :
+
+Ana bilgisayar ile mikrodenetleyici arasındaki iletişim seri port üzerinden sağlanmaktadır. Arduino, gerilimini USB portundan alırken, servo ve motorlar için ayrı güç kaynakları kullanılmaktadır. Motorlar için 12V sabit gerilim, servolar için ise 5V sabit gerilim sağlanmış olup, tüm güç kaynaklarının ve arduinon toprak hatları (GND) birleştirilmiştir.
+
+<img src="GreenSort/img/Arduinonun_bağlantı_şeması.jpg" alt="Proje Görseli" width="800" height="350"/>
+
 # Çalışma diyagramı :  
 
   - Kontrol sistemi ile yapay zeka arasındaki soket bağlantısı üzerinden komutlar iletilmektedir. Kontrol sistemi bir komut gönderdiğinde, yapay zeka aldığı görüntüde geri dönüştürülebilir bir atık tespit ederse, atığın türüne uygun kutunun servo motorları açılır. Geri dönüşüm atığı, servo motor yardımıyla ilgili kutuya yönlendirilirken bu süreç boyunca motorlar çalışır. İşlem tamamlandığında motorlar durur, servo kapanır ve geri dönüşüm atığı kutuya bırakılır. Bir sonraki işlem, kontrol sisteminden yeni bir komut alınıncaya kadar başlatılmaz.
