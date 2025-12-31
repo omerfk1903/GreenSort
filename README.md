@@ -1,8 +1,8 @@
 # GreenSort
 
-NOT : GreenSort projesi geliştirme aşamasında olması sebebiyle bazı fonksiyonlar çalışmıyor durumdadır ama temel yapması gereken işlemleri yapıyor.
-
 GreenSort cihazı atık ayırma projesidir.Projenin temel amacı, geri dönüştürülebilir atıkların ayrımının yapılabilmesidir. Geri dönüştürülebilir ise atıkların ana maddesine göre bölgelere ayrılıyor.
+
+NOT : Proje kapsamında, başlangıçta Arduino kullanılarak geliştirilen sistem daha profesyonel bir yapıya kavuşturulmak amacıyla PLC tabanlı olarak yeniden tasarlanmıştır. PLC’nin Arduino’ya kıyasla daha uzun süreli, kararlı ve verimli çalışabilmesi nedeniyle bu değişiklik uygulanmış; sistem uyumluluğu sağlanarak gerekli güncellemeler yapılmıştır. Yapılan geliştirmeler sonucunda sistemin daha verimli çalıştığı gözlemlenmiştir.PLC'nin lad ve scl kodlarını githup desteklemediginden resim olarak eklenmiştir. 
 
 <img src="GreenSort/img/GreenSort.jpg" alt="Proje Görseli" width="500" height="200"/>
 
@@ -28,25 +28,31 @@ Ana bilgisayar ile mikrodenetleyici arasındaki iletişim seri port üzerinden s
 
 <img src="GreenSort/img/Diyagram.jpg" alt="Proje Görseli" width="1000" height="350"/>
 
-# Kullanılan malzemeler  : 
-    
-    1-) Arduino 
-    
-    2-) Ana bilgisayar(Kişisel bilgisayarım) veya raspberry gibi mini bilgisayarlarda kullanılabilir.
-    
-    3-) 2 tane servo 
-    
-    4-) 12v motor 
-    
-    5-) Bant 
-    
-    6-) kamera(kişisel telefonumu kullandım) 
+# Ana gerekli magzemeler  : 
 
-    7-) AC-DC Dönüştürücü 220v-12v
+    - Ana bilgisayar(Kişisel bilgisayarım) veya raspberry gibi mini bilgisayarlarda kullanılabilir.
 
-    8-) Röle 
+    - 2 tane servo 
 
-    9-) Stop butonu
+    - 12v motor 
+
+    - Bant 
+
+    - kamera(kişisel telefonumu kullandım) 
+
+    - AC-DC Dönüştürücü 220v-12v
+
+    - Röle 
+
+    - Stop butonu
+   
+  # PLC - PYTHON :
+
+       - PLC(SIEMENS - s7-S1511) : Sanal ortamdada çalıştırılıbilir.
+  
+  # ARDUİNO - PYTHON : 
+    
+       - Arduino
 
 
 
