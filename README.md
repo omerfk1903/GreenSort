@@ -46,11 +46,11 @@ Ana bilgisayar ile mikrodenetleyici arasındaki iletişim seri port üzerinden s
 
     - Stop butonu
    
-  # PLC - PYTHON :
+  # PLC - (Computer,Other):
 
        - PLC(SIEMENS - s7-S1511) : Sanal ortamdada çalıştırılıbilir.
   
-  # ARDUİNO - PYTHON : 
+  # ARDUİNO - (Computer-Other) : 
     
        - Arduino
 
