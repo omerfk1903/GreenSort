@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 from datetime import datetime as dt
 from tkinter import messagebox
 from struct import calcsize
+from logger import setup_logger
 import tkinter as tk
 
 class tkinter_Menu : 
@@ -12,22 +13,28 @@ class tkinter_Menu :
 
         CMD_CONTROL = 1 # Komut satırın kapanması yada açık kalmasını kontrol eder.
 
-        self.passSend = ["#34/","#53/"] #Serial haberleşmede gelen komutların görevlerini sifreli kodlara göre ayrılıyor
+        self.passSend = ["#34/","#53/"] # Serial haberleşmede gelen komutların görevlerini sifreli kodlara göre ayrılıyor
         self.cnts = 0
 
         self.HOST = "localhost"  # Sunucu adresi
         self.PORT = 8000  # Sunucu portu
         
-        self.Button_Recv_state = False
-        self.Button_Send_state = False
-        self.Button_Systeam_Break_state = False
-        self.ButtonSerialControl = False
+        self.Button_Recv_state = False # Veri alma butonu 
+        self.Button_Send_state = False # ver gönderme butonu
+        self.Button_Systeam_Break_state = False 
         self.buttonThreading_sleep = 0.05
+
+        # Mikrodenetleyici seçimi yapılıyor
+        self.ButtonSerialControl = False
+        self.ButtonPlcControl = True
 
         self.data = b""
         self.payload_size = calcsize("Q") 
 
         self.MinFilePath = getcwd()# Dosya konumu alınıyor.
+
+        # Logger başlatılıyor
+        self.logger = setup_logger(txt="Tkinter")
 
         #------------ WİNDOWS CMD CLOSE -----------#
         if CMD_CONTROL and name == "nt" : # CMD komut satırını gizlemek için kullanılır 
@@ -35,11 +42,13 @@ class tkinter_Menu :
             from win32gui import ShowWindow
             win = GetConsoleWindow() 
             ShowWindow(win, 0)
+            self.logger.info("OS : Windows")
         
         #------------ LİNUX CMD CLOSE -------------#
         if not CMD_CONTROL and name != "nt" :
             from subprocess import Popen # linux 
-            Popen('shutdown','now') # linux komut satırını kapatmak
+            #Popen('shutdown','now') # linux komut satırını kapatmak
+            self.logger.info("OS : Linux")
         
         #-------------- PATH ---------------------#
         self.windowsBack =  self.MinFilePath + "\\img\\Arka_Plan.png"
@@ -53,7 +62,7 @@ class tkinter_Menu :
         self.window.geometry(f"{widht}x{height}") # Menü boyutu ayarlanıyor
         self.window.title("Control System") # Uygulamamının ismi ekleniyor
         if exists(self.iconPath) : self.window.iconbitmap(default=self.iconPath)# uygulamaya icon ekleniyor
-        else : print("İcon dosya yolu bulunamadı")
+        else : self.logger.warning("İcon is not found galery")
         
         # ----------------- Background galery add ---------------#
         self.canvas = tk.Canvas(self.window,width=widht,height=height)
@@ -131,13 +140,13 @@ class tkinter_Menu :
             while True : 
                 try : 
                     if self.client_socket.getpeername() != " " :
-                        print(f"Address : {self.client_socket.getpeername()} Name : {self.client_socket.getsockname} HOST CONNECT") 
+                        self.logger.info(f"Address : {self.client_socket.getpeername()} Name : {self.client_socket.getsockname} HOST CONNECT")
                         break
                 except : 
                     countre = countre + 1
-                    print("HOST DİSCONNECT ...")
+                    self.logger.warning("HOST DİSCONNECT ...")
                     if countre == 3 : 
-                        print("Sunucu ile bağlantı kurulamıyor")
+                        self.logger.warning("Connect is not was setup with at server ")
                         self.listbox.insert(tk.END,f" PORT : {self.PORT} Disconnect 1 ")
                         self.listbox.yview_moveto(1)
                         break
@@ -164,6 +173,15 @@ class tkinter_Menu :
                         self.listbox.yview_moveto(1)
                     elif recvCode == "#Ab3" : 
                         self.listbox.insert(tk.END,f"Band durumu : {data}")
+                        self.listbox.yview_moveto(1)
+                    elif recvCode == "#Abs5" : # plc için komut gidip gitmedigi kontrol ediliyor.
+                        data_splite = data.split('_')[1]
+                        if data_splite == "send" :
+                            self.listbox.insert(tk.END,f"Band is send value : {data}")
+                            self.Send_button.config(state="disabled")
+                        if data_splite == "recv" :
+                            self.listbox.insert(tk.END,f"Band is recv value : {data}")
+                            self.Send_button.config(state="active")
                         self.listbox.yview_moveto(1)
                     else : pass
             except : 
@@ -232,19 +250,11 @@ class tkinter_Menu :
             try : 
                 self.Button_Send_state = not self.Button_Send_state
                 if (self.Button_Send_state != (not self.Button_Send_state)) and self.client_socket.getpeername() != " " : 
-                    print(f"Button_Send : {current_thread().name}")
+                    self.logger.info(f"Button_Send : {current_thread().name}")
                     send = self.passSend[0] + "A"
                     self.client_socket.sendall(send.encode('utf-8'))
                     self.listbox.insert(tk.END,send + " " + str(dt.now().date()))
                     self.listbox.yview_moveto(1)
-                    """"
-                    self.Send_button.config(state="disabled")
-                    while self.Send_button.cget("state") == "disabled" : 
-                        data = self.client_socket.recv(1)
-                        dataDecode = data.decode('utf-8')
-                        if(dataDecode == send):break
-                    self.Send_button.config(state="normal")
-                    """
                 sleep(self.buttonThreading_sleep)
             except : 
                 self.Socket_Open_Close.config(state="normal")
@@ -258,7 +268,7 @@ class tkinter_Menu :
             try : 
                 self.Button_Systeam_Break_state = (not self.Button_Systeam_Break_state)
                 if (self.Button_Systeam_Break_state != (not self.Button_Systeam_Break_state)) and self.client_socket.getpeername() != " " :
-                    print(f"Button_Break state : {current_thread().name} ")
+                    self.logger.info(f"Button_Break state : {current_thread().name} ")
                     send = self.passSend[0] + "B"
                     self.client_socket.sendall(send.encode('utf-8'))
                     self.listbox.insert(tk.END,send + " " + str(dt.now().date()))
@@ -272,7 +282,7 @@ class tkinter_Menu :
         self.window.update()
 
     def Button_Visiable(self,control) : # Buttonun durumuna göre durumunu değiştirme
-        if control == False and self.ButtonSerialControl == False : 
+        if control == False and (self.ButtonSerialControl and self.ButtonPlcControl) == False : 
             control = "disabled"
             if self.Recv_button.cget("state") == "normal" : 
                 self.Recv_button.config(state=control)
@@ -280,10 +290,10 @@ class tkinter_Menu :
                 self.Systeam_Break_Button.config(state=control)
             if self.Send_button.cget("state") == "normal" : 
                 self.Send_button.config(state=control)
-        if control == True  and  self.ButtonSerialControl == True :  
+        if control == True and (self.ButtonSerialControl or self.ButtonPlcControl) == True :  
             control = "normal"
             if self.Recv_button.cget("state") == "disabled" : 
-                self.Recv_button.config(state=control)
+                self.Recv_button.config(state="disabled")
             if self.Systeam_Break_Button.cget("state") == "disabled": 
                 self.Systeam_Break_Button.config(state=control)
             if self.Send_button.cget("state") == "disabled" : 
