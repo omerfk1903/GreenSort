@@ -483,7 +483,7 @@ class Yolov8 :
                         # it will a send the value
                         if self.plc_send_value != None : 
 
-                            eself.plc_send[0] = ord(str(self.plc_send_value).strip())
+                            self.plc_send[0] = ord(str(self.plc_send_value).strip())
                             self.plc_send[1] = rand
                             
                             # it is send data a lot  
@@ -580,4 +580,5 @@ class Yolov8 :
         self.logger.info("ÇEKİRDEKLERE GÖREV AKTARILDI")
 
 cv2.destroyAllWindows()
+
 
