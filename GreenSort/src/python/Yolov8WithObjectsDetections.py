@@ -12,12 +12,15 @@ from math import ceil # Yukarı yuvarlama
 from time import sleep,time # Bekleme
 from os.path import exists # Dosya varlığı kontrol ediliyor
 from os import name,getcwd # İşletim sistemi bilgisi alınıyor
-from threading import Thread,Event,current_thread# Çekirdek kontrol 
+from threading import Thread,Event,current_thread # Çekirdek kontrol 
 from gc import collect # Bellek temizleme işlemi
+from logger import setup_logger # Sistemde olan bitenleri log dosyasına yazıran kütüphane
+from pyModbusTCP.client import ModbusClient # PLC ile arasındaki iletişim için kullanılan kütüphane
+from random import randint # random degerler üretme .
 
 class Yolov8 :
 
-    def __init__(self,FunchControl,Socket_Camera_Send,baudrate,write_timeout,timeout,LoopSerialSend,Memory_chech_sleep,CMD_Control,Tolerans,distance,CONTROL_KEYBOARD,ScreanSize,ToleransWeightControl,ScreenControl,ToleransMiddle,buttonSleep,sleepLoop) :
+    def __init__(self,FunchControl,Embedded_Systeam_Search,Socket_Camera_Send,baudrate,PLC_Start_Command,write_timeout,timeout,LoopSerialSend,Memory_chech_sleep,CMD_Control,Tolerans,distance,CONTROL_KEYBOARD,ScreanSize,ToleransWeightControl,ScreenControl,PLC_ip_v4,PLC_register_Adress,PLC_Port,ToleransMiddle,buttonSleep,sleepLoop) :
 
         self.classNames = ['Aliminyum', 'Aliminyum', 'Aliminyum', 'Aliminyum','Aliminyum',
         'Glass','Glass',
@@ -31,7 +34,9 @@ class Yolov8 :
         self.Time = 0
         self.LasTime = 0
         self.lasTime = 0
+        self.plc_send_value = 0
         
+        self.PLC_Start_Command = PLC_Start_Command
         self.Memory_chech_sleep = Memory_chech_sleep
         self.CMD_Control = CMD_Control
         self.FunchControl = FunchControl
@@ -46,15 +51,28 @@ class Yolov8 :
         self.buttonSleep = buttonSleep # 0.09
         self.LoopSerialSend = LoopSerialSend
         self.Socket_Camera_Send = Socket_Camera_Send
+        self.Embedded_Systeam_Search = Embedded_Systeam_Search #
+        
+        # PLC ile haberleşme için gerekli olan girdiler.
+        self.PLC_Port = PLC_Port
+        self.PLC_ip_v4 = PLC_ip_v4
+        self.PLC_register_Adress = PLC_register_Adress
+        self.plc_step = 0
+        self.plc_send = [0,0,0]
+        self.plc_last_rand = 0
 
-        HOST = "localhost"  # Sunucu adresi
-        PORT = 8000  # Sunucu portu
+        # MENÜ ÜİLE ARSINDAKİ VERİ İLETİŞİMİ İÖİN GEREKLİ OLAN GİRDİLER.
+        MENU_HOST = "localhost"  # Sunucu adresi
+        MENU_PORT = 8000  # Sunucu portu
         
         self.send = None
         self.lasSend = None
         self.KEYBOARD = 0xFF
         self.vertices = array([[(75, 525), (440, 320), (520, 330), (920, 525)]], int32)  # köşeler
-     
+        
+        # Logger başlatılıyor
+        self.logger = setup_logger(txt="Yolov8")
+
         # Dosya yolları
         self.MainFilePath = getcwd()
         self.pathLog = f"{self.MainFilePath}\\log.txt"
@@ -72,30 +90,32 @@ class Yolov8 :
         # Tetikleme işlemi 
         global event # global tanımlama yapılmıştır 
         event = Event()
-    
+        
+        """
         if self.CMD_Control and name == "nt" : # CMD komut satırını gizlemek için kullanılır 
             from win32console import GetConsoleWindow
             from win32gui import ShowWindow
             win = GetConsoleWindow() 
             ShowWindow(win, 0)
-            print("OS : WİNDOWS ")
+            self.logger.info("OS : WİNDOWS")
+        """
 
         if not self.CMD_Control and name != "nt" :
             from subprocess import Popen # linux 
-            Popen('shutdown','now') # linux komut satırını kapatmak
-            print("OS : LİNUX")
+            #Popen('shutdown','now') # linux komut satırını kapatmak
+            self.logger.info("OS : LİNUX")
         
         # For camera
         try : 
             self.cap = cv2.VideoCapture(0)
-            print("KAMERAYA ERİŞİLDİ")
-        except : print("KAMERAYA ERİŞİLEMEDİ")
+            self.logger.info(" Camera connect")
+        except : self.logger.warning("Camera disconnect") 
 
         # Yapay zeka kontrol 
         try : 
             self.model = YOLO(self.Path2)
-            print("MODEL HAZIR")
-        except : print("YOLOV 8 MODELİ BULUNAMADI YADA FARKLI BİR HATAYLA KARŞILAŞILDI ")
+            self.logger.info("Yolov8 model activate")
+        except : self.logger.warning("Yolov8 model disactivate")
     
         if self.Use_Grapich_card == "cpu" : # CPU ekran kartı kullanılır ise çalışır 
             try :
@@ -107,39 +127,43 @@ class Yolov8 :
                 cv2.setNumThreads(Thread_Funch_Counter) # Aynı anda yapılan işlem sayısı(Thread)
                 cv2.setUseOptimized(True) # OPENCV AKTİF EDİYOR 
                 cv2.ocl.setUseOpenCL(True) # OPENCL AKTİF EDİYOR
-                print("CPU EKRAN KARTI ÖZELLİKLERİ AKTİF ")
-            except : print("CPU OPTİMİZESİ ÇALIŞTIRILAMADI ")
-        else : print("GPU EKRAN KARTI AKTİF")
+                self.logger.info("CPU graphics cart at activate")
+            except : self.logger.error("CPU graphics cart at disactivate")
+        else : self.logger.warning("GPU graphics disactivate")
 
-        #Port = self.list_serial_ports()['name'] #Port ismi 
-        #if len(Port) == 0 : print(" PORT YOK ") 
-        try: # Serial iletişim başlatılması ve ayarlanması için kullanılır
-            self.sr = Serial()
-            self.sr.baudrate = baudrate
-            self.sr.timeout = timeout
-            #self.sr.write_timeout = write_timeout
-            #self.sr.port = Port #Port ismi 
-            self.sr.port = self.list_serial_ports()
-            self.sr.open()
-            self.sr.flush()
-            if self.sr.is_open : 
-                print("SERİAL CONNECT ")
-                print("ARDUİNO COM : {0}".format(self.sr.port))
-            else : 
-                print("SERİAL DİSCONNECT ")
-                print("ARDUİNO COM : {0}".format(self.sr.port))
-        except : 
-            print("SERİAL DİSCONNET")
-            print("ARDUİNO COM : {0}".format(self.sr.port))
+        if self.Embedded_Systeam_Search == "Arduino" :
+            try: # Serial iletişim başlatılması ve ayarlanması için kullanılır
+                self.sr = Serial()
+                self.sr.baudrate = baudrate
+                self.sr.timeout = timeout
+                #self.sr.write_timeout = write_timeout
+                #self.sr.port = Port #Port ismi 
+                self.sr.port = self.list_serial_ports()
+                self.sr.open()
+                self.sr.flush()
+                if self.sr.is_open : self.logger.info("Serial connect : (NAME : {0} | PORT : {1})".format(self.sr.name,self.sr.port))
+                else : self.logger.warning("Serial disconnect : (NAME : {0} | PORT : {1})".format(self.sr.name,self.sr.port))
+            except : self.logger.warning("Serial disconnect : (NAME : {0} | PORT : {1})".format(self.sr.name,self.sr.port))
         
-        try : 
+        if self.Embedded_Systeam_Search == "Plc" :
+            try : # PLC TCP SERVER OLUŞTURULUYOR
+                self.client = ModbusClient(
+                    host=self.PLC_ip_v4,  # SERVER / PLC IP
+                    port=self.PLC_Port,
+                    auto_open=True,
+                    auto_close=True)
+                self.logger.info("PLC is ethernet to connect")
+            except : self.logger.warning("PLC is not ethernet to connect")
+
+        try : # Menü arasındaki port haberleşmesi. SERVER
             # Socket iletişimi başlatılıyor
             self.server_socket = sc.socket(sc.AF_INET, sc.SOCK_STREAM)
-            self.server_socket.bind((HOST, PORT))
+            self.server_socket.bind((MENU_HOST, MENU_PORT))
             self.server_socket.listen(5)
-            print("SOCKET OLUŞTURULDU ")
-        except : 
-            print("SOCKET OLUŞTURULAMADI ")
+            self.logger.info("Socket is connect for menu")
+        except : self.logger.warning("Socket is not connect for menu")
+
+        if Tolerans : self.logger(" Tolerans yok") 
         
         # Ana görüntünün boyutu ayarlanıyor 
         self.success, self.img = self.cap.read() # görüntü okunuyor
@@ -154,33 +178,27 @@ class Yolov8 :
         self.Objectİmportent2 = self.widht - self.Objectİmportent
         self.Ycmdistance = int(ceil(self.Xcmdistance / 4))
 
-        print("Cut processing : Y : {0} | X : {1} ".format(self.Ycmdistance,self.Xcmdistance))
-
         # Parçalanan görüntünün boyut bilgisi alınıyor 
         self.imgSplite = self.imgCopy[self.Ycmdistance:self.Ycmdistance + (self.height - self.Ycmdistance),
         self.Objectİmportent:self.Objectİmportent + abs(self.Objectİmportent2 - self.Objectİmportent)]
         (self.height, self.widht) = self.imgSplite.shape[:2] # Video boyutu alınıyor
         self.height = int(self.height)
         self.widht = int(self.widht)
-        
-        print("Height : {0} | Widht : {1} ".format(self.height,self.widht))
 
         self.waitkey = cv2.waitKeyEx(0) 
         self.Key = self.waitkey & self.KEYBOARD == ord('q') # Key
         self.TimeButtonKey = self.waitkey & self.KEYBOARD == ord('x') # Time write and systeam control
         self.TimeButtonReadKey = self.waitkey & self.KEYBOARD == ord('r')
 
-        print(" Use Grapich Card : {0} ".format(self.Use_Grapich_card))
-
-        if exists(self.Path2) : print("This {0}  file found ".format(self.pathSplite[self.pathSpliteLen - 1]))
-        else : print("This {0}  file not found ".format(self.pathSplite[self.pathSpliteLen - 1]))
+        if exists(self.Path2) : self.logger.info("This {0}  file found ".format(self.pathSplite[self.pathSpliteLen - 1]))
+        else : self.logger.warning("This {0}  file not found ".format(self.pathSplite[self.pathSpliteLen - 1])) 
         
         # Başlangıç öncesi işlem 
-        print("5 second wait ")
+        self.logger.info("5 second wait")
         for x in range(0,5) : 
             sleep(1)
             print(str(x + 1) + "..." )
-        print("Device ready the start")
+        self.logger.info("Device ready the start")
 
     def SysteamFeedback(self) : # Makinenin durumunu aktaran fonksiyon
         """
@@ -195,17 +213,18 @@ class Yolov8 :
         passCode = ["#Ab1","#Ab2","#Ab3"] # kodlar gönderilen verileri ayırt etmek için kullanılır.
         event.set()
         try : 
-            while True :
-                send = (str(self.sr.is_open) + "/" + passCode[0]) # Serial haberleşme 
-                self.server_socket.sendall(send.encode('utf-8'))
-                sleep(0.5)
-                send = (str(servok) + "/" + passCode[1]) # Servonun konumu
-                self.server_socket.sendall(send.encode('utf-8'))
-                sleep(0.5)
-                send = (str(bandB) + "/" + passCode[2]) # bandın hareket durumu
-                self.server_socket.sendall(send.encode('utf-8'))
-                sleep(0.5)
-        except sc.error as e : print(f"Socket bağlantı hatası : {e}")
+            if self.Embedded_Systeam_Search == "arduino" : 
+                while self.sr.is_open :
+                    send = (str(self.sr.is_open) + "/" + passCode[0]) # Serial haberleşme 
+                    self.server_socket.sendall(send.encode('utf-8'))
+                    sleep(0.5)
+                    send = (str(servok) + "/" + passCode[1]) # Servonun konumu
+                    self.server_socket.sendall(send.encode('utf-8'))
+                    sleep(0.5)
+                    send = (str(bandB) + "/" + passCode[2]) # bandın hareket durumu
+                    self.server_socket.sendall(send.encode('utf-8'))
+                    sleep(0.5)
+        except sc.error as e : self.logger.warning(f"Socket is connect error : {e}")
 
     def CameraRecv(self) : 
 
@@ -240,12 +259,12 @@ class Yolov8 :
     def Socket_Send_Recv_Send(self) : # socket ile iletişim fonksiyonudur 
         cnt = 0 # 1 : zaman bilgisi toplama , 0 zaman bilgilerini işleme 
         countreSerial = 0
-        def handle_client(client_socket,address):
+        def Menu_Socket_Control(client_socket,address):
             event.wait()
             global dataDecode
-            while self.sr.is_open :
+            while True :
                 try : 
-                    data = client_socket.recv(10)  # 10 byte veri okuma
+                    data = client_socket.recv(10) # 10 byte veri okuma
                     dataDecode = data.decode('utf-8') # byte türünden kullanılabilir türe dönüştürüyor
                     dD = str(dataDecode).split('/') # istediğimiz kısımları almak için parçalama yapılıyor
                     dataDecode = dD[1]
@@ -260,16 +279,21 @@ class Yolov8 :
                                 self.lasTime = time()
                                 self.Time_Date_Write()
                             if (self.send == "r" or self.send == "R") and cnt == 1 : self.Time_Date_Read()
-                        else : self.SerialDate() 
+                        else : 
+                            if self.Embedded_Systeam_Search == "Arduino" : self.SerialDate() # serial veri ile gönderiliyor.
+                            else : self.PLC_Socket()
                     else : continue
                 except sc.error or sc.timeout or ConnectionRefusedError or sc.gaierror : 
-                    if countreSocket == 3 : break # 3 kere socket hatası deneniyor
+                    if countreSocket == 3 : 
+                        self.logger.warning(f" Socket bağlantısın {countreSocket} denenedi ama bağlantı kurulamadığından port kapatıldı.")
+                        break # 3 kere socket hatası deneniyor
                     countreSocket = countreSocket + 1 
-                    continue # Bir sorun ile karşılaşılır ise programı kapatır.
+                    continue # Sorun ile karşılaştırıldığında döngü başa geçer.
                 sleep(self.sleepLoop)
-        #while self.sr.is_open :
+                self.plc_send_value = self.send
+                print(f" this Send is data : str : {self.send} | int : {ord(self.send)}")
         client_socket, address = self.server_socket.accept() 
-        client_thread = Thread(target=handle_client, args=(client_socket,address,))
+        client_thread = Thread(target=Menu_Socket_Control, args=(client_socket,address,))
         client_thread.start()
 
     def YolovCameraObjectDetection(self) :
@@ -280,14 +304,13 @@ class Yolov8 :
 
             self.new_frame_time = time()
             
-            results = self.model(self.imgSplite, stream=False)
+            results = self.model(self.imgSplite, stream=False,verbose=False)
 
             for r in results:
                 boxes = r.boxes
                 for box in boxes:
 
-                    x1, y1, x2, y2 = box.xyxy[0]
-                    self.x1, self.y1, self.x2, self.y2 = int(x1), int(y1), int(x2), int(y2)
+                    self.x1, self.y1, self.x2, self.y2 = map(int, boxes.xyxy[0])
                     
                     self.cls = int(box.cls[0])
                     self.objectName = self.classNames[self.cls]
@@ -303,16 +326,15 @@ class Yolov8 :
                             self.x2 = ceil(self.x2 + (self.x2 * (self.Tolerans / 2)))
                             self.y1 = ceil(self.y1 - (self.y1 * (self.Tolerans / 2)))
                             self.y2 = ceil(self.y2 + (self.y2 * (self.Tolerans / 2)))
-                    else : print("TOLERANS YOKTUR")
 
                     w = abs(int(self.x2 - self.x1))
                     h = abs(int(self.y2 - self.y1))
 
-                    #cismin ortası
+                    # cismin ortası
                     self.middleX = self.x1 + int(w / 2)
                     self.middleY = self.y1 + int(h / 2)
                            
-                    #ekranın ortası
+                    # ekranın ortası
                     self.heightort = self.height / 2
                     self.widhtort = self.widht / 2
 
@@ -389,29 +411,33 @@ class Yolov8 :
                         self.send = "g"
                         self.lasTime = time()
                         self.Time_Date_Write()
-                        self.SerialDate()
+                        if self.Embedded_Systeam_Search == "Arduino" : self.SerialDate() # serial veri ile gönderiliyor.
+                        else : self.PLC_Socket()
                         countre = 0
-                        print(" send : {0} ".format(self.send))
+                        self.logger.info("Keyboard Send : {0}".format(self.send))
                         sleep(self.buttonSleep)
                         continue
                     if countre == 0 and self.HeightandWidht : # Servo açılır ve step motor harekete geçer
                         self.send = self.objectName[0]
                         self.Time = time()#buttona birinci kez basıldığında
-                        self.SerialDate()
+                        if self.Embedded_Systeam_Search == "Arduino" : self.SerialDate() # serial veri ile gönderiliyor.
+                        else : self.PLC_Socket()
                         countre = countre + 1
-                        print(" send : {0} ".format(self.send))
+                        self.logger.info("Keyboard Send : {0}".format(self.send))
                         sleep(self.buttonSleep)
                         continue
                 else : # Proje tam olarak bittiğinde çalışması gereken
                     if self.HeightandWidht :
                         self.send = self.objectName[0]
-                        self.SerialDate()
-                        print(" send : {0} ".format(self.send))
+                        if self.Embedded_Systeam_Search == "Arduino" : self.SerialDate() # serial veri ile gönderiliyor.
+                        else : self.PLC_Socket()
+                        self.logger.info("Keyboard Send : {0}".format(self.send))
                         sleep(self.buttonSleep)
                         continue
             if self.LoopSerialSend == 1 :
                 self.send = self.objectName[0]
-                self.SerialDate()
+                if self.Embedded_Systeam_Search == "Arduino" : self.SerialDate() # serial veri ile gönderiliyor.
+                else : self.PLC_Socket()
                 sleep(self.buttonSleep)
             
             sleep(self.sleepLoop)
@@ -424,6 +450,60 @@ class Yolov8 :
             if recv == "OK{0}".format(self.send):
                 self.sr.flush()# port boşaltılıyor
                 break
+            sleep(self.sleepLoop)
+
+    def PLC_Socket(self,Try = None) :
+        def plc_recv_thread():
+            while self.plc_step == 2 :
+                try:
+                    recv = self.client.read_holding_registers(0, 3)
+                    if not recv : continue
+                    else :
+                        if recv[2] == 1 :
+                            #send = ("plc_recv" + "/" + "#Abs5") 
+                            #self.server_socket.sendall(send.encode('utf-8'))
+                            self.logger.info(f"Feedback recv : {recv}")
+                            self.plc_send[2] = 0
+                            self.plc_step = 0
+                            break
+                except Exception as e : self.logger.warning(f"PLC read error : {e}")
+
+        threading_recv = Thread(target=plc_recv_thread)
+
+        try : # send
+
+            rand = randint(0,100) # it is a create number random
+
+            if self.plc_last_rand != rand : # rand diff
+
+                if self.plc_step == 0 and self.plc_send[2] == 0 : # step control
+
+                    if Try : self.plc_send_value = int(input(" send : ")) # typ control
+                    else :
+                        # it will a send the value
+                        if self.plc_send_value != None : 
+
+                            # Send is add data
+                            if Try : self.plc_send[0] = self.plc_send_value # deneme için kullanılıyor.
+                            else : self.plc_send[0] = ord(str(self.plc_send_value).strip())
+                            self.plc_send[1] = rand
+                            
+                            # it is send data a lot  
+                            result = self.client.write_multiple_registers(self.PLC_register_Adress,self.plc_send) 
+                            
+                            # it is step processing 
+                            self.plc_step = 2 
+                 
+                    if result :
+                        #socket_send = ("plc_send" + "/" + "#Abs5") 
+                        #self.server_socket.sendall(socket_send.encode('utf-8'))
+                        self.plc_last_rand = rand 
+                        self.logger.info(f"Data is send : {str(self.plc_send)}", )
+                        threading_recv.start()
+
+                self.plc_last_rand = rand # it is together new data with last data
+
+        except Warning as e : self.logger.warning(f" Send is create error block : {e}")
 
     def Time_Date_Write(self) : # LOG dosyasına zaman bilgileri yazılır 
         file = open(self.pathLog, 'a') # YAZILAN VERİLERİN SİLİNMEMESİ İÇİN KULLANILIR
@@ -442,10 +522,7 @@ class Yolov8 :
                 countre2=countre2+1
                 floatToConvertNumber = float(byteOutNumber)
                 ort2 = ort2 + floatToConvertNumber
-        if(countre2!=0) : 
-            ort2 = round(ort2/countre2,3)
-            print(" veri ortalaması : {0}".format(ort2))
-        else : print(" veri yok ")
+        if(countre2!=0) : ort2 = round(ort2/countre2,3)
         file.close()
 
     def list_serial_ports(self): # Serial portlar bulunuyor 
@@ -502,6 +579,6 @@ class Yolov8 :
             self.ThreadingSocket.join()
             self.ThreadingSerialControl.join()
     
-        print("ÇEKİRDEKLERE GÖREV AKTARILDI")
+        self.logger.info("ÇEKİRDEKLERE GÖREV AKTARILDI")
 
 cv2.destroyAllWindows()
